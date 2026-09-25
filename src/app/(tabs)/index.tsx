@@ -21,6 +21,7 @@ export default function Index() {
   const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [pickedEmoji, setPickedEmoji] = useState<ImageSourcePropType | undefined>(undefined);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   const imageRef = useRef<View>(null);
 
@@ -63,7 +64,6 @@ export default function Index() {
     if(Platform.OS !== "web") {
       try {
         const localUri = await captureRef(imageRef, {
-          height: 440,
           quality: 1,
         });
 
@@ -78,8 +78,8 @@ export default function Index() {
       try {
         const dataUrl = await domtoimage.toJpeg(imageRef.current, {
           quality: 0.95,
-          width: 320,
-          height: 440,
+          width: imageSize.width,
+          height: imageSize.height,
         });
 
         let link = document.createElement('a');
@@ -96,10 +96,25 @@ export default function Index() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.imageContainer}>
-        <View ref={imageRef} collapsable={false}>
+        <View
+          ref={imageRef}
+          collapsable={false}
+          style={styles.imageFrame}
+          onLayout={({ nativeEvent }) => {
+            const { width, height } = nativeEvent.layout;
+            setImageSize((current) =>
+              current.width === width && current.height === height ? current : { width, height }
+            );
+          }}
+        >
           <ImageViewer imgSource={PlaceholderImage} selectedImage={selectedImage}/>
           {pickedEmoji && (
-            <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+            <EmojiSticker
+              imageSize={40}
+              stickerSource={pickedEmoji}
+              imageWidth={imageSize.width}
+              imageHeight={imageSize.height}
+            />
           )}
         </View>
       </View>
@@ -132,17 +147,35 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
+    width: "100%",
+    maxWidth: 640,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  imageFrame: {
+    flex: 1,
+    borderRadius: 18,
+    overflow: "hidden",
   },
   footerContainer: {
-    flex: 1/3,
+    width: "100%",
+    maxWidth: 520,
     alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   optionsContainer: {
-    position: "absolute",
-    bottom: 80,
+    width: "100%",
+    maxWidth: 520,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   optionsRow: {
+    width: "100%",
     alignItems: "center",
     flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
