@@ -47,6 +47,7 @@ export default function Index() {
   };
 
   const onReset = () => {
+    setPickedEmoji(undefined);
     setShowAppOptions(false);
   };
 
